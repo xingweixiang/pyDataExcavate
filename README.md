@@ -18,19 +18,19 @@
     pip install keras --default-timeout=500
     pip install tensorflow --default-timeout=500
  ## 目录
-* [数据分析与挖掘](#数据分析与挖掘)
-	* [一、数据挖掘基础](#数据挖掘基础)
+* 数据分析与挖掘
+	* [一、数据挖掘基础](#一数据挖掘基础)
 		* [1、数据挖掘的基本任务](#1数据挖掘的基本任务)
 		* [2、数据挖掘建模过程](#2数据挖掘建模过程)
-	* [二、python数据分析工具](#python数据分析工具)
-		* [1、Numpy](#Numpy)
-		* [2、Scipy](#Scipy)
-		* [3、matplotlib](#matplotlib)
-		* [4、Pandas](#Pandas)
-		* [5、StatsModels](#StatsModels)
-		* [6、scikit-Learn](#scikit-Learn)
-		* [7、Keras](#Keras)
-		* [8、Gensim](#Gensim)
+	* [二、python数据分析工具](#二python数据分析工具)
+		* [1、Numpy](#1Numpy)
+		* [2、Scipy](#2Scipy)
+		* [3、matplotlib](#3matplotlib)
+		* [4、Pandas](#4Pandas)
+		* [5、StatsModels](#5StatsModels)
+		* [6、scikit-Learn](#6scikit-Learn)
+		* [7、Keras](#7Keras)
+		* [8、Gensim](#8Gensim)
 		
 ## 一、数据挖掘基础
 
