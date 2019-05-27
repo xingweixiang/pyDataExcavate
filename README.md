@@ -229,7 +229,7 @@ hist 绘制二维条形直方图<br>
 boxplot 绘制箱型图 Pandas<br>
 plot(logy=True) 绘制y轴的对数图形 Pandas<br>
 plot(yerr=error) 绘制误差条形图 Pandas
-## 三、[数据预处理](/example/chapter4/demo)
+## 四、[数据预处理](/example/chapter4/demo)
 数据预处理：主要包括数据清洗，数据集成，数据变换和数据规约
 ### 1、数据清洗
 - 主要是删除原始数据集中的无关数，重复数据，平滑噪声数据，筛选掉与挖掘主题无关的数据，处理缺失值，异常值等<br>
