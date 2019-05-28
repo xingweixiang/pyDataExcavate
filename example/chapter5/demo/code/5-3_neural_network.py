@@ -1,6 +1,6 @@
 ﻿#-*- coding: utf-8 -*-
 #使用神经网络算法预测销量高低
-
+#tensorflow只支持到python3.5，这里的keras在3.7环境下不能用，在python3.5下运行通过
 import pandas as pd
 
 #参数初始化
