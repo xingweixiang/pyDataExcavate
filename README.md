@@ -16,6 +16,7 @@
     pip install PyWavelets
     pip install keras --default-timeout=500
     pip install tensorflow --default-timeout=500
+    pip install pillow 
  ## 目录
 * 数据分析与挖掘
 	* [一、数据挖掘基础](#一数据挖掘基础)
@@ -51,9 +52,9 @@
         * [2、数据探索分析及数据预处理](#2数据探索分析及数据预处理)
         * [3、模型构建](#3模型构建)
     * [七、航空公司客户价值分析](#七航空公司客户价值分析)
-        * [1、背景与挖掘目标](#1背景与挖掘目标)
-        * [2、数据探索分析及数据预处理](#2数据探索分析及数据预处理)
-        * [3、模型构建](#3模型构建)
+        * [7-1、背景与挖掘目标](#7-1背景与挖掘目标)
+        * [7-2、数据探索分析及数据预处理](#7-2数据探索分析及数据预处理)
+        * [7-3、模型构建](#7-3模型构建)
 ## 一、数据挖掘基础
 ### 1、数据挖掘的基本任务
 - 基本任务包含：分类和预测、聚类分析、关联规则、时序模式、偏差检验、智能推荐等。从数据中提取商业价值。
@@ -473,12 +474,45 @@ plt.show()
 ![模型对比ROC曲线](/example/chapter6/demo/code/dt_lm_roc.jpg)
 - 进行窃漏电诊断：在线监测用户用电负荷及终端报警数据，并经过处理，得到模型输入数据，利用构建好的窃漏电用户识别模型计算用户的窃漏电诊断结果，实现窃漏电用户实时诊断，并与实际稽查结果作对比。
 ## 七、[航空公司客户价值分析](/example/chapter7/demo)
-### 1、背景与挖掘目标
+### 7-1、背景与挖掘目标
 - 根据航空公司提供的数据，对其客户进行分类。对不同的客户类别进行特征分析，并且比较不同类别客户的价值。对不同价值的客户类别提供个性化服务，制定相应的营销策略。
-### 2、数据探索分析及数据预处理
+### 7-2、数据探索分析及数据预处理
 - 数据抽取：以2014-03-31为结束时间，选取宽度为两年的时间段作为分析观测窗口，抽取所有客户的乘机记录形成历史数据。后续新增的客户采用同样的方法进行抽取，形成增量数据。
 - 数据探索分析：本案例对数据进行缺失值分析，分析出数据的规律以及异常值。<br>
 - 数据预处理：本案例主要采用数据清洗、属性规约和数据变换的预处理方法<br>
 数据清洗：通过数据探索分析，发现数据中存在缺失值，票价最小值为0、折扣率最小值为0、总飞行公里数大于0的记录。由于原始数据量大，这类数据所占比例小，对问题影响不大，因此对其进行丢弃处理。(用Pandas处理)<br>
 属性规约：原始数据中属性太多，删除与其不相关、弱相关或冗余的属性。<br>
-数据变换：将数据转换，以适应挖掘任务及算法。本例主要采用属性构造和数据标准化的数据变换。<br>
+数据变换：将数据转换，以适应挖掘任务及算法。本例主要采用属性构造和数据标准化的数据变换。
+### 7-3、模型构建
+根据航空公司客户5个指标的数据，对客户进行聚类分群；结合业务对每个客户群进行特征分析，分析其客户价值，并对每个客户群进行排名
+- 客户聚类：采用K-Means聚类算法对客户进行客户分群，聚成5类，进行客户价值分析。
+```
+#-*- coding: utf-8 -*-
+#K-Means聚类算法
+
+import pandas as pd
+from pandas import DataFrame
+from sklearn.cluster import KMeans #导入K均值聚类算法
+
+inputfile = '../tmp/zscoreddata.xls' #待聚类的数据文件
+k = 5                       #需要进行的聚类类别数
+#读取数据并进行聚类分析
+data = pd.read_excel(inputfile) #读取数据
+#调用k-means算法，进行聚类分析
+kmodel = KMeans(n_clusters = k, n_jobs = 1) #n_jobs是并行数，一般等于CPU数较好
+kmodel.fit(data) #训练模型
+print(kmodel.cluster_centers_) #查看聚类中心
+print(kmodel.labels_) #查看各样本对应的类别
+labels = kmodel.labels_#查看各样本类别
+demo= DataFrame(kmodel.cluster_centers_, columns=data.columns) # 保存聚类中心
+# demo2= demo['numbers'].value_counts() # 确定各个类的数目
+#画雷达图 客户群特征分析图
+data = demo.values
+from example.chapter7.demo.code.radar import drawRader
+title = 'RadarPicture'
+rgrids = [0.5, 1, 1.5, 2, 2.5]
+itemnames = ['ZL','ZR','ZF','ZM','ZC']
+labels = ['重要保持客户','重要发展客户','重要挽留客户','一般客户','低价格客户']
+drawRader(itemnames=itemnames,data=data,title=title,labels=labels, saveas = '2.jpg',rgrids=rgrids)
+```
+![客户群特征分析图](/example/chapter7/demo/code/radar.jpg)
