@@ -120,6 +120,7 @@
 完成与处理后，思考问题：本次建模是属于数据挖掘中的哪一类(分类、聚类、关联规则、时序模式或者智能推荐)，是要使用什么样的算法来构建模型？这一步是核心关键。
 - 模型评价<br>
 从建模之后得出来一些分析结果，从而找到一个最好的模型。做出根据业务对模型的解释和应用。
+## 二、python数据分析工具
 ## 二、[python数据分析工具](/example/chapter2/demo/code)（代码）
 numpy、scipy、matplotlib、pandas、statsModels、scikit-Learn、Kears、Gensim、Pillow(原PIL)
 ### 1、numpy
