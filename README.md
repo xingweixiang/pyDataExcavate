@@ -59,6 +59,39 @@
         * [8-1、背景与挖掘目标](#8-1背景与挖掘目标)
         * [8-2、数据探索分析及数据预处理](#8-2数据探索分析及数据预处理)
         * [8-3、模型构建](#8-3模型构建)
+    * [九、基于水色图像的水质评价](#九基于水色图像的水质评价)
+        * [9-1、背景与挖掘目标](#9-1背景与挖掘目标)
+        * [9-2、数据探索分析及数据预处理](#9-2数据探索分析及数据预处理)
+        * [9-3、模型构建](#9-3模型构建)
+    * [十、家用电器用户行为分析与事件识别](#十家用电器用户行为分析与事件识别)
+        * [10-1、背景与挖掘目标](#10-1背景与挖掘目标)
+        * [10-2、数据探索分析及数据预处理](#10-2数据探索分析及数据预处理)
+        * [10-3、模型构建](#10-3模型构建)
+    * [十一、应用系统负载分析与磁盘容量预测](#十一应用系统负载分析与磁盘容量预测)
+        * [11-1、背景与挖掘目标](#11-1背景与挖掘目标)
+        * [11-2、数据探索分析及数据预处理](#11-2数据探索分析及数据预处理)
+        * [11-3、模型构建](#11-3模型构建)
+    * [十二、电子商务网站用户行为分析及服务推荐](#十二电子商务网站用户行为分析及服务推荐)
+        * [12-1、背景与挖掘目标](#12-1背景与挖掘目标)
+        * [12-2、数据探索分析及数据预处理](#12-2数据探索分析及数据预处理)
+        * [12-3、模型构建](#12-3模型构建)
+    * [十三、财政收入影响因素分析及预测模型](#十三财政收入影响因素分析及预测模型)
+        * [13-1、背景与挖掘目标](#13-1背景与挖掘目标)
+        * [13-2、数据探索分析及数据预处理](#13-2数据探索分析及数据预处理)
+        * [13-3、模型构建](#13-3模型构建)
+    * [十四、基于基站定位数据的商圈分析](#十四基于基站定位数据的商圈分析)
+        * [14-1、背景与挖掘目标](#14-1背景与挖掘目标)
+        * [14-2、数据探索分析及数据预处理](#14-2数据探索分析及数据预处理)
+        * [14-3、模型构建](#14-3模型构建)
+    * [十五、电商产品评论数据情感分析](#十五电商产品评论数据情感分析)
+        * [15-1、背景与挖掘目标](#15-1背景与挖掘目标)
+        * [15-2、数据探索分析及数据预处理](#15-2数据探索分析及数据预处理)
+        * [15-3、模型构建](#15-3模型构建)
+    * [十六、企业偷漏税识别模型](#十六企业偷漏税识别模型)
+        * [16-1、背景与挖掘目标](#16-1背景与挖掘目标)
+        * [16-2、数据探索分析及数据预处理](#16-2数据探索分析及数据预处理)
+        * [16-3、模型构建](#16-3模型构建)
+        * [16-4、模型评价](#16-4模型评价)
 ## 一、数据挖掘基础
 ### 1、数据挖掘的基本任务
 - 基本任务包含：分类和预测、聚类分析、关联规则、时序模式、偏差检验、智能推荐等。从数据中提取商业价值。
@@ -219,6 +252,36 @@ yp = model.predict_classes(x).reshape(len(y)) #分类预测
 离中趋势：极差、标准差、变异系数(CV=标准差/平均值*100%)、四分位数间距(上下四分位数之差)
 周期性分析：是探索变量是否随时间呈周期变化趋势
 贡献度分析：又称帕累托分析，原理是帕累托法则，又称20/80定律。同样的投入在不同的地方产生不同的收益
+```
+#-*- coding: utf-8 -*-
+#菜品盈利数据 帕累托图
+from __future__ import print_function
+import pandas as pd
+
+#初始化参数
+dish_profit = '../data/catering_dish_profit.xls' #餐饮菜品盈利数据
+data = pd.read_excel(dish_profit, index_col = u'菜品名')
+print(data)
+data = data[u'盈利'].copy()
+print('------------------')
+print(data)
+#data.sort(ascending = False) 会提示AttributeError: 'Series' object has no attribute 'sort'也就是说Series没有sorted这个方法 应该这样：sorted(.....) ...是你要排序的Seri
+data.sort_values(ascending = False) #可以用Series.sort_values()方法,对Series值进行排序。
+import matplotlib.pyplot as plt #导入图像库
+plt.rcParams['font.sans-serif'] = ['SimHei'] #用来正常显示中文标签
+plt.rcParams['axes.unicode_minus'] = False #用来正常显示负号
+
+plt.figure()
+plt.title('帕累托图');
+data.plot(kind='bar')
+plt.ylabel(u'盈利（元）')
+p = 1.0*data.cumsum()/data.sum()
+p.plot(color = 'r', secondary_y = True, style = '-o',linewidth = 2)
+plt.annotate(format(p[6], '.4%'), xy = (6, p[6]), xytext=(6*0.9, p[6]*0.9), arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=.2")) #添加注释，即85%处的标记。这里包括了指定箭头样式。
+plt.ylabel(u'盈利（比例）')
+plt.show()
+```
+![帕累托图](/example/chapter3/demo/data/plt.jpg)
 - 相关性分析：分析连续变量之间线性相关程度的强弱，并用适当的统计指标表示出来 
 直接绘制散点图<br>
 绘制散点图矩阵，对多个变量两两关系的散点图<br>
@@ -267,7 +330,7 @@ plot(yerr=error) 绘制误差条形图 Pandas
  2、视为缺失值：利用缺失值的方法进行处理；<br>
  3、平均值修正：可用前后两个观测值的平均值修正改异常值；<br>
  4、不处理：直接在具有异常值的数据上进行挖掘建模
- ### 2、数据集成
+### 2、数据集成
 - 数据往往分布在不同的数据源中，数据集成就是将多个数据源合并存放在一个一致的数据存储中的过程。<br>
 1、实体识别：从不同数据源识别出现实世界的实体，统一不同源数据的矛盾之处；<br>
 2、冗余属性识别：数据集成往往导致数据冗余：统一属性多次出现；同一属性命名不一致导致重复。对于冗余数据先分析，检测后进行删除。
@@ -527,3 +590,101 @@ drawRader(itemnames=itemnames,data=data,title=title,labels=labels, saveas = '2.j
 - 数据预处理：调用k-means算法，进行聚类离散化。
 ### 8-3、模型构建
 - 采用Apriori关联规则算法，挖掘它们之间的关联关系，探索乳腺癌症患者TNM分期与中医证型系数之间的关系。
+## 十六、[企业偷漏税识别模型](/example/chapter16/demo)（代码）
+### 16-1、背景与挖掘目标
+- 依据汽车销售企业的部分经营指标的数据，来评估汽车销售行业纳税人的偷漏税倾向，建立偷漏税行为识别模型。
+### 16-2、数据探索分析及数据预处理
+- 数据分析：其中一个是纳税人编号，一个是是否偷漏税的输出结果，不偷税为正常，存在偷漏税则为异常，其他都为与偷漏税相关的经营指标。本例将分别从分类变量和数值型变量两个方面入手对数据做一个探索性分析<br>
+分类变量：销售的汽车类型和销售模式可能会对偷漏税倾向有一定的表征，画出【输出结果为异常的销售类型和销售模式】的分布图可以直观上看出是否有一定影响。<br>
+```
+#-*- coding: utf-8 -*-
+import pandas as pd
+import matplotlib.pyplot as plt #导入Matplotlib
+inputfile = '../data/样本数据.xls'
+df = pd.read_excel(inputfile, encoding = 'utf-8')
+
+fig=plt.figure()
+fig.set(alpha=0.2)
+#不同销售类型和销售模式下的偷漏税情况
+plt.rcParams['font.sans-serif'] = ['SimHei'] #用来正常显示中文标签
+plt.rcParams['axes.unicode_minus'] = False #用来正常显示负号
+plt.subplot2grid((1,2),(0,0))
+df_type=df[u'销售类型'][df[u'输出']=='异常'].value_counts()
+df_type.plot(kind='bar',color='Red')
+plt.title(u'不同销售类型下的偷漏税情况',fontproperties='SimHei')
+plt.xlabel(u'销售类型',fontproperties='SimHei')
+plt.ylabel(u'异常数',fontproperties='SimHei')
+plt.subplot2grid((1,2),(0,1))
+df_model=df[u'销售模式'][df[u'输出']=='异常'].value_counts()
+df_model.plot(kind='bar',color='Orange')
+plt.title(u'不同销售模式下的偷漏税情况',fontproperties='SimHei')
+plt.xlabel(u'销售模式',fontproperties='SimHei')
+plt.ylabel(u'异常数',fontproperties='SimHei')
+plt.subplots_adjust(wspace=0.3)
+plt.show()
+```
+![销售类型和销售模式特征分析图](/example/chapter16/demo/data/plot.jpg)<br>
+数值型变量：用describe输出数值型数据分布情况
+- 数据预处理：在模型建立时，将分类变量转换成虚拟变量，本例主要对销售类型、销售模式以及输出进行虚拟变量的建立。 
+Pandas中有直接转换的函数，get_dummies。
+### 16-3、模型构建
+- 选取80%作为训练数据，20%作为测试数据。采用CART决策树模型和逻辑回归模型，建模识别企业偷漏税，并绘制了两个模型的ROC曲线进行两个模型的比较。<br>
+通过两个模型结果分析：维修毛利、代办保险率、4S店对偷漏税有明显的负相关，成本费用利润率、办牌率、大客车和一级代理商对偷漏税有明显的正相关。<br>
+纳税人维修毛利越高，代办保险率越高，通过4S店销售，其偷漏税倾向将会越低；而纳税人成本费用利润率、办牌率越高，销售类型为大客车，销售模式为一级代理商，那么该纳税人将更有可能为偷漏税用户。
+### 16-4、模型评价
+- 做出的两个模型的ROC曲线如下图所示
+```
+#-*- coding: utf-8 -*-
+#决策树和逻辑回归模型比较
+import pandas as pd #导入数据分析库
+inputfile = '../data/样本数据.xls'
+df = pd.read_excel(inputfile, encoding = 'utf-8')
+#数据预处理（将销售类型与销售模式以及输出转换成虚拟变量）
+type_dummies=pd.get_dummies(df[u'销售类型'],prefix='type')
+model_dummies=pd.get_dummies(df[u'销售模式'],prefix='model')
+result_dummies=pd.get_dummies(df[u'输出'],prefix='result')
+df=pd.concat([df,type_dummies,model_dummies,result_dummies],axis=1)
+df.drop([u'销售类型',u'销售模式',u'输出'],axis=1,inplace=True)
+#正常列去除，异常列作为结果
+df.drop([u'result_正常'],axis=1,inplace=True)
+df.rename(columns={u'result_异常':'result'},inplace=True)
+#数据划分(80%作为训练数据，20%作为测试数据)
+data=df.values
+from random import shuffle
+shuffle(data)
+data_train=data[:int(len(data)*0.8),:]
+data_test=data[int(len(data)*0.8):,:]
+#确定y值和特征值
+y=data_train[:,-1]
+x=data_train[:,1:-1]
+#逻辑回归
+from sklearn import linear_model
+clf=linear_model.LogisticRegression(C=1.0,penalty='l1',tol=1e-6,solver='liblinear')
+#此处的x,y与上文中决策树所用x,y相同
+clf.fit(x,y)
+
+#决策树模型
+from sklearn.tree import DecisionTreeClassifier #导入决策树模型
+tree = DecisionTreeClassifier() #建立决策树模型
+tree.fit(x, y) #训练
+
+#两个分类方法的ROC曲线
+from sklearn.metrics import roc_curve #导入ROC曲线函数
+import matplotlib.pyplot as plt
+plt.rcParams['font.sans-serif'] = ['SimHei'] #用来正常显示中文标签
+fig,ax=plt.subplots()
+fpr, tpr, thresholds = roc_curve(data_test[:,-1], tree.predict_proba(data_test[:,1:-1])[:,1], pos_label=1)
+fpr2, tpr2, thresholds2 = roc_curve(data_test[:,-1], clf.predict_proba(data_test[:,1:-1])[:,1], pos_label=1)
+plt.plot(fpr, tpr, linewidth=2, label = 'ROC of CART', color = 'blue') #作出ROC曲线
+plt.plot(fpr2, tpr2, linewidth=2, label = 'ROC of LR', color = 'green') #作出ROC曲线
+plt.title('决策树和逻辑回归模型比较')
+plt.xlabel('False Positive Rate') #坐标轴标签
+plt.ylabel('True Positive Rate') #坐标轴标签
+plt.ylim(0,1.05) #边界范围
+plt.xlim(0,1.05) #边界范围
+plt.legend(loc=4) #图例
+plt.show() #显示作图结果
+```
+![决策树和逻辑回归模型比较ROC图](/example/chapter16/demo/data/dt_lr_roc.jpg)
+- ROC曲线越靠近左上角，则模型性能越优，当两个曲线做于同一个坐标时，若一个模型的曲线完全包住另一个模型，则前者优，当两者有交叉时，则看曲线下的面积，上图明显蓝色线下的面积更大，即CART决策树模型性能更优。 
+- 结论：对于本例子来说，CART决策树模型不管从混淆矩阵来看，还是从ROC曲线来看，其性能都要优于逻辑回归模型。

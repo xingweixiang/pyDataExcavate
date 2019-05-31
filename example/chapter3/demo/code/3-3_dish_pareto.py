@@ -17,6 +17,7 @@ plt.rcParams['font.sans-serif'] = ['SimHei'] #用来正常显示中文标签
 plt.rcParams['axes.unicode_minus'] = False #用来正常显示负号
 
 plt.figure()
+plt.title('帕累托图');
 data.plot(kind='bar')
 plt.ylabel(u'盈利（元）')
 p = 1.0*data.cumsum()/data.sum()
