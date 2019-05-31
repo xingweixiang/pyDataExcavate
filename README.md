@@ -72,6 +72,7 @@
         * [11-1、背景与挖掘目标](#11-1背景与挖掘目标)
         * [11-2、数据探索分析及数据预处理](#11-2数据探索分析及数据预处理)
         * [11-3、模型构建](#11-3模型构建)
+        * [11-4、模型评价](#11-4模型评价)
     * [十二、电子商务网站用户行为分析及服务推荐](#十二电子商务网站用户行为分析及服务推荐)
         * [12-1、背景与挖掘目标](#12-1背景与挖掘目标)
         * [12-2、数据探索分析及数据预处理](#12-2数据探索分析及数据预处理)
@@ -600,7 +601,7 @@ drawRader(itemnames=itemnames,data=data,title=title,labels=labels, saveas = '2.j
 - 对特征提取后的样本进行抽样，抽取80%作为训练样式，20%作为测试样本，用于水质评价检验。采用支持向量机作为水质评价分类模型，模型的输入包括两部分，一是训练样本的输入，二是建模参数的输入。
 ## 十、[家用电器用户行为分析与事件识别](/example/chapter10/demo)（代码）
 ### 10-1、背景与挖掘目标
--  根据热水器厂商提供的数据进行分析，对用户的用水事件进行分析，判断用水是否是洗浴事件，识别不同用户的用水习惯，以提供个性化的服务。
+-  根据热水器厂商提供的数据进行分析，对用户的用水事件进行分析，判断用水是否是洗浴事件，识别不同用户的用水习惯，以提供个性化的服务。(二分类)
 ### 10-2、数据探索分析及数据预处理
 - 数据探索：通过频率分布直方图分析用户用水停顿时间间隔的规律性；然后，探究划分一次完整用水事件的时间间隔阈值。
 ```
@@ -655,11 +656,54 @@ for label in ax.xaxis.get_ticklabels():  # 此语句完成功能同上,但是可
 #plt.savefig('../data/Water-pause-times.jpg')
 plt.show()
 ```
-![销售类型和销售模式特征分析图](/example/chapter10/demo/data/Water-pause-times.jpg)<br>
+![销售类型和销售模式特征分析图](/example/chapter10/demo/data/Water-pause-times.jpg)
 ### 10-3、模型构建
 - 使用Keras库来训练神经网络，训练样本为根据用户记录的日志标记好的用水事件。根据样本，得到训练好的神经网络后，就可以用来识别对应用户的洗浴事件。
 ### 10-4、模型检验
 - 根据用水日志来判断事件是否为洗浴与多层神经网络模型识别结果的比较，检验模型的准确率。
+## 十一、[应用系统负载分析与磁盘容量预测](/example/chapter11/demo)（代码）
+### 11-1、背景与挖掘目标
+- 根据历史磁盘数据，采用时间序列分析法，来预测应用系统服务器磁盘已经使用空间的大小；为管理员提供定制化的预警提示。(时间序列---回归)
+### 11-2、数据探索分析及数据预处理
+- 数据特征分析：通过下图可以发现，磁盘的使用情况都不具有周期性，表现出缓慢性增长，呈现趋势性。可以初步确认数据是非平稳的。
+```
+#-*- coding: utf-8 -*-
+#数据特征分析(画时序图)
+import pandas as pd
+#参数初始化
+inputfile1 = '../data/discdata.xls'
+data = pd.read_excel(inputfile1)
+data.head()
+d = data[(data['ENTITY'] == 'C:\\') & (data['TARGET_ID'] == 184)]
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+plt.rc('figure', figsize=(9, 7))
+import datetime
+import matplotlib.dates as mdates
+plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['axes.unicode_minus'] = False
+fig = plt.figure()
+ax = fig.add_subplot(1, 1, 1)
+ax.set_title(u"C盘已使用空间的时序图")
+# ax.set_xlabel(u'日期')
+ax.set(xlabel=u'日期', ylabel=u'磁盘使用大小')
+# 图上时间间隔显示为10天
+ax.xaxis.set_major_locator(mdates.DayLocator(bymonthday=range(1, 32), interval=10))
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
+plt.subplots_adjust(bottom=0.13, top=0.95)
+ax.plot(d['COLLECTTIME'], d['VALUE'], 'ro-', color = 'green')
+fig.autofmt_xdate()  # 自动根据标签长度进行旋转
+'''for label in ax.xaxis.get_ticklabels():   #此语句完成功能同上
+       label.set_rotation(45)
+'''
+plt.savefig('../data/c.jpg')
+plt.show()
+```
+![时序图](/example/chapter11/demo/data/c.jpg)
+### 11-3、模型构建
+- 模型检验：为了方便对模型进行评价，将经过数据预处理后的建模数据划分两部分，一是建模样本，二是模型验证数据。本例确定的ARIMA（0,1,1）模型通过检验。
+### 11-4、模型评价
+- 为了评价时序预测模型效果的好坏，选择建模数据的后5条记录作为实际值，将预测值与实际值进行误差分析。误差在可接受范围内，就可对模型进行应用，实现对应用系统容量的预测。
 ## 十六、[企业偷漏税识别模型](/example/chapter16/demo)（代码）
 ### 16-1、背景与挖掘目标
 - 依据汽车销售企业的部分经营指标的数据，来评估汽车销售行业纳税人的偷漏税倾向，建立偷漏税行为识别模型。
