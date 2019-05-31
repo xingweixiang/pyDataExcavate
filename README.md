@@ -67,6 +67,7 @@
         * [10-1、背景与挖掘目标](#10-1背景与挖掘目标)
         * [10-2、数据探索分析及数据预处理](#10-2数据探索分析及数据预处理)
         * [10-3、模型构建](#10-3模型构建)
+        * [10-4、模型检验](#10-4模型检验)
     * [十一、应用系统负载分析与磁盘容量预测](#十一应用系统负载分析与磁盘容量预测)
         * [11-1、背景与挖掘目标](#11-1背景与挖掘目标)
         * [11-2、数据探索分析及数据预处理](#11-2数据探索分析及数据预处理)
@@ -597,6 +598,68 @@ drawRader(itemnames=itemnames,data=data,title=title,labels=labels, saveas = '2.j
 - 数据预处理：图片切割，图片数据特征提取:常用直方图法、颜色矩。
 ### 9-3、模型构建
 - 对特征提取后的样本进行抽样，抽取80%作为训练样式，20%作为测试样本，用于水质评价检验。采用支持向量机作为水质评价分类模型，模型的输入包括两部分，一是训练样本的输入，二是建模参数的输入。
+## 十、[家用电器用户行为分析与事件识别](/example/chapter10/demo)（代码）
+### 10-1、背景与挖掘目标
+-  根据热水器厂商提供的数据进行分析，对用户的用水事件进行分析，判断用水是否是洗浴事件，识别不同用户的用水习惯，以提供个性化的服务。
+### 10-2、数据探索分析及数据预处理
+- 数据探索：通过频率分布直方图分析用户用水停顿时间间隔的规律性；然后，探究划分一次完整用水事件的时间间隔阈值。
+```
+#-*- coding: utf-8 -*-
+import numpy as np
+import pandas as pd
+from pandas import DataFrame
+inputfile = '../data/water_heater.xls' #输入数据路径,需要使用Excel格式
+data = pd.read_excel(inputfile,encoding='utf-8')
+data[u'发生时间'] = pd.to_datetime(data[u'发生时间'], format='%Y%m%d%H%M%S')  # 将该特征转成日期时间格式（***）
+data = data[data[u'水流量'] > 0]  # 只要流量大于0的记录
+# print len(data) #7679
+data[u'用水停顿时间间隔'] = data[u'发生时间'].diff() / np.timedelta64(1, 'm')  # 将datetime64[ns]转成 以分钟为单位（*****）
+data = data.fillna(0)  # 替换掉data[u'用水停顿时间间隔']的第一个空值
+#-----第*1*步-----数据探索，查看各数值列的最大最小和空值情况
+data_explore = data.describe().T
+data_explore['null'] = len(data)-data_explore['count']
+explore = data_explore[['min','max','null']]
+explore.columns = [u'最小值',u'最大值',u'空值数']
+# ----第*2*步-----离散化与面元划分
+# 将时间间隔列数据划分为0~0.1，0.1~0.2，0.2~0.3....13以上，由数据描述可知，
+# data[u'用水停顿时间间隔']的最大值约为2094，因此取上限2100
+Ti = list(data[u'用水停顿时间间隔'])  # 将要面元化的数据转成一维的列表
+timegaplist = [0.0, 0.1, 0.2, 0.3, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 2100]  # 确定划分区间
+cats = pd.cut(Ti, timegaplist, right=False)  # 包扩区间左端,类似"[0,0.1)",（默认为包含区间右端）
+x = pd.value_counts(cats)
+x.sort_index(inplace=True)
+dx = DataFrame(x, columns=['num'])
+dx['fn'] = dx['num'] / sum(dx['num'])
+dx['cumfn'] = dx['num'].cumsum() / sum(dx['num'])
+f1 = lambda x: '%.2f%%' % (x * 100)
+dx[['f']] = dx[['fn']].applymap(f1)
+# -----第*3*步-----画用水停顿时间间隔频率分布直方图
+import matplotlib.pyplot as plt
+plt.rcParams['font.sans-serif'] = ['SimHei'] #用来正常显示中文标签
+plt.rcParams['axes.unicode_minus'] = False #用来正常显示负号
+fig = plt.figure()
+ax = fig.add_subplot(1, 1, 1)
+dx['fn'].plot(kind='bar')
+plt.ylabel(u'频率/组距')
+plt.xlabel(u'时间间隔（分钟）')
+p = 1.0 * dx['fn'].cumsum() / dx['fn'].sum()  # 数值等于 dx['cumfn']，但类型是列表
+dx['cumfn'].plot(color='r', secondary_y=True, style='-o', linewidth=2)
+plt.annotate(format((p[4]), '.4%'), xy=(7, p[4]), xytext=(7 * 0.9, p[4] * 0.95),
+             arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=.2"))  # 添加注释，即85%处的标记。这里包括了指定箭头样式。
+plt.ylabel(u'累计频率')
+plt.title(u'用水停顿时间间隔频率分布直方图')
+plt.grid(axis='y', linestyle='--')
+# fig.autofmt_xdate() #自动根据标签长度进行旋转
+for label in ax.xaxis.get_ticklabels():  # 此语句完成功能同上,但是可以自定义旋转角度
+    label.set_rotation(60)
+#plt.savefig('../data/Water-pause-times.jpg')
+plt.show()
+```
+![销售类型和销售模式特征分析图](/example/chapter10/demo/data/Water-pause-times.jpg)<br>
+### 10-3、模型构建
+- 使用Keras库来训练神经网络，训练样本为根据用户记录的日志标记好的用水事件。根据样本，得到训练好的神经网络后，就可以用来识别对应用户的洗浴事件。
+### 10-4、模型检验
+- 根据用水日志来判断事件是否为洗浴与多层神经网络模型识别结果的比较，检验模型的准确率。
 ## 十六、[企业偷漏税识别模型](/example/chapter16/demo)（代码）
 ### 16-1、背景与挖掘目标
 - 依据汽车销售企业的部分经营指标的数据，来评估汽车销售行业纳税人的偷漏税倾向，建立偷漏税行为识别模型。
