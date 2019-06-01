@@ -724,18 +724,80 @@ plt.show()
 - 利用了Adaptive-Lasso进行变量选择，AdaptiveLasso算法，要在较新的Scikit-Learn才有，进行预测模型构建。
 ## 十四、[基于基站定位数据的商圈分析](/example/chapter14/demo)
 ### 14-1、背景与挖掘目标
-- 
+- 从某通信运营商提供的特定接口解析得到用户的定位数据。利用基站小区的覆盖范围作为商圈区域的划分，归纳出商圈的人流特征和规律，识别出不同类别的商圈，选择合适的区域进行运营商的促销活动。（聚类）
 ### 14-2、数据探索分析及数据预处理
-- 
+- 由于各个属性之间的差异较大，为了消除数量级数据带来的影响，在进行聚类前，需要进行离差标准化处理。
 ### 14-3、模型构建
-- 
+- 数据经过预处理后，形成建模数据。采用层次聚类算法对建模数据进行基于基站数据的商圈聚类，画出谱系聚类图。
+```
+#-*- coding: utf-8 -*-
+#谱系聚类图
+import pandas as pd
+#参数初始化
+standardizedfile = '../data/standardized.xls' #标准化后的数据文件
+data = pd.read_excel(standardizedfile, index_col = u'基站编号') #读取数据
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import linkage,dendrogram
+#这里使用scipy的层次聚类函数
+Z = linkage(data, method = 'ward', metric = 'euclidean') #谱系聚类图
+P = dendrogram(Z, 0) #画谱系聚类图
+plt.savefig('../data/plot.jpg')
+plt.show()
+```
+![谱系聚类图](/example/chapter14/demo/data/plot.jpg)<br>
+可把聚类类别取3类，层次聚类算法代码如下
+```
+#-*- coding: utf-8 -*-
+#层次聚类算法
+import pandas as pd
+
+#参数初始化
+standardizedfile = '../data/standardized.xls' #标准化后的数据文件
+k = 3 #聚类数
+data = pd.read_excel(standardizedfile, index_col = u'基站编号') #读取数据
+
+from sklearn.cluster import AgglomerativeClustering #导入sklearn的层次聚类函数
+model = AgglomerativeClustering(n_clusters = k, linkage = 'ward')
+model.fit(data) #训练模型
+
+#详细输出原始数据及其类别
+r = pd.concat([data, pd.Series(model.labels_, index = data.index)], axis = 1)  #详细输出每个样本对应的类别
+r.columns = list(data.columns) + [u'聚类类别'] #重命名表头
+
+import matplotlib.pyplot as plt
+plt.rcParams['font.sans-serif'] = ['SimHei'] #用来正常显示中文标签
+plt.rcParams['axes.unicode_minus'] = False #用来正常显示负号
+
+style = ['ro-', 'go-', 'bo-']
+xlabels = [u'工作日人均停留时间', u'凌晨人均停留时间', u'周末人均停留时间', u'日均人流量']
+pic_output = '../tmp/type_' #聚类图文件名前缀
+
+for i in range(k): #逐一作图，作出不同样式
+  plt.figure()
+  tmp = r[r[u'聚类类别'] == i].iloc[:,:4] #提取每一类
+  for j in range(len(tmp)):
+    plt.plot(range(1, 5), tmp.iloc[j], style[i])
+  
+  plt.xticks(range(1, 5), xlabels, rotation = 20) #坐标标签
+  plt.title(u'商圈类别%s' %(i+1)) #我们计数习惯从1开始
+  plt.subplots_adjust(bottom=0.15) #调整底部
+  plt.savefig(u'%s%s.png' %(pic_output, i+1)) #保存图片
+```
+![商圈类别1折线图](/example/chapter14/demo/tmp/type_1.png)<br>
+![商圈类别2折线图](/example/chapter14/demo/tmp/type_2.png)<br>
+![商圈类别3折线图](/example/chapter14/demo/tmp/type_3.png)<br>
 ## 十五、[电商产品评论数据情感分析](/example/chapter15/demo)
 ### 15-1、背景与挖掘目标
-- 
+- 对京东平台上的热水器评论进行文本挖掘分析，挖掘建模如下：<br>
+1）分析某一个品牌热水器的用户情感倾向<br>
+2）从评论文本中挖掘出该品牌热水器的优点和不足<br>
+3）提炼不同品牌热水器的卖点
 ### 15-2、数据探索分析及数据预处理
-- 
+- 评论数据抽取旨在选择某一个具体品牌进行评论分析，按照书中步骤选择抽取美的品牌的评论数据。
+- 评论数据抽取完成后，需要对数据进行预处理，预处理包括文本去重、机械压缩去词以及短句删除。 
+- 在构建模型之前，先利用武汉大学的内容分析工具ROSTCM6对文本进行了情感分析，得出了积极样本和消极样本，然后需要对两者进行删除前缀评分处理和分词处理。 
 ### 15-3、模型构建
-- 
+- 本例采用模型为LDA主题模型。
 ## 十六、[企业偷漏税识别模型](/example/chapter16/demo)
 ### 16-1、背景与挖掘目标
 - 依据汽车销售企业的部分经营指标的数据，来评估汽车销售行业纳税人的偷漏税倾向，建立偷漏税行为识别模型。
