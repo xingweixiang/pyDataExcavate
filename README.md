@@ -3,20 +3,21 @@
 ## 运行环境
      python 3.7.*
 ## requirements
-    pip install numpy
-    pip install pandas
-    pip install matplotlib
-    pip install mkl
-    pip install scipy
-    pip install statsmodels
-    pip install xlrd
-    pip install xlwt
-    pip install scikit-learn --default-timeout=500
-    pip install pywt
-    pip install PyWavelets
-    pip install keras --default-timeout=500
-    pip install tensorflow --default-timeout=500
-    pip install pillow 
+    numpy
+    pandas
+    matplotlib
+    mkl
+    scipy
+    statsmodels
+    xlrd
+    xlwt
+    scikit-learn --default-timeout=500
+    pywt
+    PyWavelets
+    keras --default-timeout=500
+    tensorflow --default-timeout=500
+    pillow 
+    gensim
  ## 目录
 * 数据分析与挖掘
 	* [一、数据挖掘基础](#一数据挖掘基础)
