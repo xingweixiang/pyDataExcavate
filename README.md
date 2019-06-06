@@ -227,6 +227,7 @@ yp = model.predict_classes(x).reshape(len(y)) #分类预测
 参考链接：<br>
 [http://deeplearning.net/software/theano/install.html#install](http://deeplearning.net/software/theano/install.html#install/)<br>
 [https://github.com/fchollet/keras](https://github.com/fchollet/keras/)
+[https://keras-cn.readthedocs.io/en/latest/](https://keras-cn.readthedocs.io/en/latest/)
 ### 8、Gensim
 - 用来做文本主题模型的库，文本挖掘，处理语言方面的任务，如文本相似度计算，LDA，Word2Vec
 参考链接：<br>
