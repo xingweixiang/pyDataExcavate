@@ -95,6 +95,12 @@
         * [16-2、数据探索分析及数据预处理](#16-2数据探索分析及数据预处理)
         * [16-3、模型构建](#16-3模型构建)
         * [16-4、模型评价](#16-4模型评价)
+    * [十七、信用卡反欺诈预测模型](#十七信用卡反欺诈预测模型)
+        * [17-1、背景与挖掘目标](#17-1背景与挖掘目标)
+        * [17-2、数据探索分析及数据预处理](#17-2数据探索分析及数据预处理)
+        * [17-3、模型构建](#17-3模型构建)
+        * [17-4、模型评价](#17-4模型评价)
+        * [17-5、信用卡几种分析](#17-5信用卡几种分析)
 ## 一、数据挖掘基础
 ### 1、数据挖掘的基本任务
 - 基本任务包含：分类和预测、聚类分析、关联规则、时序模式、偏差检验、智能推荐等。从数据中提取商业价值。
@@ -898,3 +904,107 @@ plt.show() #显示作图结果
 ![决策树和逻辑回归模型比较ROC图](/example/chapter16/demo/data/dt_lr_roc.jpg)
 - ROC曲线越靠近左上角，则模型性能越优，当两个曲线做于同一个坐标时，若一个模型的曲线完全包住另一个模型，则前者优，当两者有交叉时，则看曲线下的面积，上图明显蓝色线下的面积更大，即CART决策树模型性能更优。 
 - 结论：对于本例子来说，CART决策树模型不管从混淆矩阵来看，还是从ROC曲线来看，其性能都要优于逻辑回归模型。
+## 十七、[信用卡反欺诈预测模型](/example/chapter17/demo)
+### 17-1、背景与挖掘目标
+- 本项目通过利用信用卡的历史交易数据，进行机器学习，构建信用卡反欺诈预测模型，提前发现客户信用卡被盗刷的事件。
+数据集包含由欧洲持卡人于2013年9月使用信用卡进行交的数据。此数据集显示两天内发生的交易，其中284,807笔交易中有492笔被盗刷。数据集非常不平衡，积极的类（被盗刷）占所有交易的0.172％。<br>
+信用卡数据集为"creditcard.csv"，地址为:https://myblogs-photos-1256941622.cos.ap-chengdu.myqcloud.com/%E4%BF%A1%E7%94%A8%E5%8D%A1%E6%AC%BA%E8%AF%88%E6%A3%80%E6%B5%8B/creditcard.csv
+### 17-2、数据探索分析及数据预处理
+- 场景解析：<br>
+1）首先，我们拿到的数据是持卡人两天内的信用卡交易数据，这份数据包含很多维度，要解决的问题是预测持卡人是否会发生信用卡被盗刷。信用卡持卡人是否会发生被盗刷只有两种可能，发生被盗刷或不发生被盗刷。又因为这份数据是打标好的（字段Class是目标列），也就是说它是一个监督学习的场景。于是，我们判定信用卡持卡人是否会发生被盗刷是一个二元分类问题，意味着可以通过二分类相关的算法来找到具体的解决办法，本项目选用的算法是逻辑斯蒂回归（Logistic Regression）。<br>
+2）分析数据：数据是结构化数据 ，不需要做特征抽象。特征V1至V28是经过PCA处理，而特征Time和Amount的数据规格与其他特征差别较大，需要对其做特征缩放，将特征缩放至同一个规格。在数据质量方面 ，没有出现乱码或空字符的数据，可以确定字段Class为目标列，其他列为特征列。<br>
+3）这份数据是全部打标好的数据，可以通过交叉验证的方法对训练集生成的模型进行评估。70%的数据进行训练，30%的数据进行预测和评估。<br>
+- 算法选择：<br>
+根据历史记录数据学习并对信用卡持卡人是否会发生被盗刷进行预测，二分类监督学习场景，选择逻辑斯蒂回归（Logistic Regression）算法。<br>
+数据为结构化数据，不需要做特征抽象，但需要做特征缩放。<br>
+- 数据预处理：<br>
+1）数据导入，拿到数据后，先将数据分成两类：0（正常数据），1（异常数据），注意正常的样本数据一定远大于异常数据。在class列中，0表示没有被诈骗，1表示被诈骗过。<br>
+2）数据集284,807笔交易中有492笔是信用卡被盗刷交易，信用卡被盗刷交易占总体比例为0.17%，信用卡交易正常和被盗刷两者数量不平衡，由于异常样本和正常样本的数据量不一样，样本不平衡影响分类器的学习，所以需要对数据进行下采样处理，使得异常样本和正常样本的数据量一致。<br>
+```
+credit_cards = pd.read_csv("creditcard.csv")
+columns = credit_cards.columns
+features_columns = columns.delete(len(columns)-1)
+features = credit_cards[features_columns]
+labels = credit_cards['Class']
+features_train, features_test, labels_train, labels_test = train_test_split(features, labels, test_size=0.2, random_state=0)
+oversampler = SMOTE(random_state=0)
+os_features, os_labels = oversampler.fit_sample(features_train, labels_train)
+print(len(os_labels[os_labels == 1]))
+print("---------------------------------------------------------------------------")
+os_features = pd.DataFrame(os_features)
+os_labels = pd.DataFrame(os_labels)
+best_c = printing_KFold_scores(os_features, os_labels)
+print(best_c)
+print("---------------------------------------------------------------------------")
+lr = LogisticRegression(C=best_c, solver='liblinear', penalty='l2')
+lr.fit(os_features, os_labels.values.ravel())
+Y_pred = lr.predict(features_test.values)
+# (在整个过采样之后的测试集上)
+cnf_matrix = confusion_matrix(labels_test, Y_pred)
+np.set_printoptions(precision=2)
+print("Recall metric in the testing dataset(在整个测试集上): ", cnf_matrix[1, 1]/(cnf_matrix[1, 0]+cnf_matrix[1, 1]))
+# Plot non-normalized confusion matrix(在进行SMOTE过采样的测试集上进行测试)
+class_names = [0, 1]
+plt.figure()
+plot_confusion_matrix(cnf_matrix,
+					  classes=class_names,
+					  title='Confusion matrix')
+plt.show()
+```
+### 17-3、模型构建
+- 使用Logstic Regression对信用卡欺诈检测进行构建分类器进行训练
+```
+# 逻辑回归的阈值对结果的影响(通过matplotlib绘图可视化出来)
+lr = LogisticRegression(C=0.01, solver='liblinear', penalty='l2')
+lr.fit(X_train_undersample, Y_train_undersample.values.ravel())
+Y_pred_undersample_proba = lr.predict_proba(X_test_undersample.values)
+thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+plt.figure(figsize=(20, 20))
+j = 1
+for i in thresholds:
+	Y_test_predictions_high_recall = Y_pred_undersample_proba[:, 1] > i
+	plt.subplot(3, 3, j)
+	j += 1
+	# Compute confusion matrix(为了节约时间，在下采样测试集上可视化阈值的影响)
+	cnf_matrix = confusion_matrix(Y_test_undersample, Y_test_predictions_high_recall)
+	np.set_printoptions(precision=2)
+	print("Recall metric in the testing dataset(下采样测试集): ", cnf_matrix[1, 1]/(cnf_matrix[1, 0]+cnf_matrix[1, 1]))
+
+	class_names = [0, 1]
+	plot_confusion_matrix(cnf_matrix,
+						  classes=class_names,
+						  title='Threshold >= %s'%i)
+plt.show()
+```
+### 17-4、模型评价
+- 做出的两个模型的ROC曲线如下图所示
+```
+plt.title('Receiver Operating Characteristic')
+plt.plot(fpr, tpr, 'b',label='AUC = %0.5f'% roc_auc)
+plt.legend(loc='lower right')
+plt.plot([0,1],[0,1],'r--')
+plt.xlim([-0.1,1.0])
+plt.ylim([-0.1,1.01])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.show()
+```
+模型训练和测试都在同一个数据集上进行，这样导致模型产生过拟合的问题。<br>
+一般来说，将数据集划分为训练集和测试集有3种处理方法：1、留出法（hold-out），2、交叉验证法（cross-validation），3、自助法（bootstrapping）<br>
+本次项目采用的是交叉验证法划分数据集，让模型在训练集进行学习，在验证集上进行参数调优，最后使用测试集数据评估模型的性能。<br>
+### 17-5、信用卡几种分析
+- 身份欺诈，即利用虚假的身份信息向金融机构申请贷款。身份造假有以下几种类型<br>
+1) 盗用或冒用他人身份信息，欺诈分子通过暴力破解、撞库等技术手段非法盗取网上银行/手机银行账户，并采用集码器等获取手机验证码等校验信息，利用账户资金进行非法消费、转账或提现等操作。<br>
+2) 盗用银行卡，即非法获取持卡人的银行卡信息，绑定支付账户，或者通过复制银行卡，提取银行卡内资金。<br>
+3) 虚假注册，即利用身份信息交易黑色产业链大量收购身份信息，在线注册账户，并利用虚假注册的非本人账户进行骗贷或洗钱，这类成本较低的欺诈方式主要用于攻击风险控制薄弱（例如提供身份证即可放款）的借贷平台。<br>
+4) 电信诈骗，即通过网络、电话等诈骗方式，诱使客户主动将资金转移到欺诈分子账户。
+- 信息隐瞒或造假，即刻意隐藏不良信息，或征信不达标的个人，在黑中介的协助下，通过各种手段将自己包装成“信用合格”人员，从而顺利获得贷款。例如申请人存在电信、公共事业、各类罚款等方面的欠缴行为，或者其名下个人资产是法院的执行对象等负面信息，或者其配偶在金融机构有过多次逾期或不良记录，即使申请人本人信用状况良好，但法律规定的代偿义务直接影响到了申请人的还款能力和意愿。由于婚姻关系不是申请表的必填信息，此类信息不对称具有相当的隐蔽性，难以被金融机构察觉。
+另外，还有欺诈分子通过作弊手段，短时间内大幅提高芝麻分等信用记录，或伪造高学历证明、工作证明、通讯信息、银行流水信息等，试图提高信用审核的通过率。
+- 隐形的欺诈意图，由于信用意识和超前消费的准备不足，一部分拥有正常信贷需求的人可能出现未能正确评估自身还款能力或丧失还款意愿的情况。申请人本人及其密切联系人（尤其是有代偿义务和代偿意愿的联系人）是否在新的贷款机构提交了借款申请，是否从新的贷款机构借款，借贷产品的类型和借贷渠道是否发生了变更等，尤其是从传统金融机构转向风控较为松懈的新型贷款机构申请贷款，或新申请了短期高息贷款，或频繁使用信用卡提现等异常现象，如果出现此类情况，有理由相信，在客户收入保持现有水平的情况下，难以偿还所有这些欠款，很大程度上能够反映出资金紧张或信用状况恶化，需要额外加以关注。
+- 商户欺诈，商户与借款人形成套现、套利的勾结关系，骗取金融机构对于特定消费场景的补贴等。
+- 不同场景下的欺诈方式
+1) 一般来说，反欺诈模型有两种，一是使用大量欺诈样本，应用规则引擎及统计分析技术，进行多维度多规则的组合，根据对欺诈识别和预测能力的贡献，每条规则被赋予相应的权重，命中相关规则的行为会得到累积的分值，即对单次信贷申请行为的欺诈度的综合量化结果，从而来预测欺诈的概率。<br>
+2) 另一种是反欺诈机器学习模型，它指的是采用数据挖掘方法，基于历史（即已知的欺诈申请和正常申请）而建立的分类模型，通过机器训练利用海量数据来对借款人进行判断。<br>
+- 机器学习主要有两种学习方式，监督学习和无监督学习。监督学习模型，通过已有的训练样本（即已知数据以及其对应的输出）去训练得到一个最优模型，具有对未知数据进行推测和分类的能力，比如在已知“好”和“坏”标签的前提下，尝试从历史数据中，挖掘出欺诈团伙的典型特征和行为模式，从而遇到相似的行为时可以分辨是否是欺诈团伙。
+监督模型虽然在预测准确性上有不错的表现，但是，实际情况中，“好”和“坏”的标签往往很难得到。因此，在没有额外信息的时候，就需要通过无监督学习模型进行分析。无监督式学习网络在学习时并不知道其分类结果是否正确，也没有告诉它何种学习是正确的)，仅提供输入范例，而它会自动从这些范例中找出其潜在类别规则。当学习完毕并经测试后，便可以将之应用到新的案例上。
+在反欺诈规则引擎中，这些甄别欺诈行为的规则依赖于从大量历史案例中总结出来的“专家知识”，而机器学习模型采用更复杂的算法建立的模型，需要大量数据建立一个良好的训练集，以保证输出结果的准确。
